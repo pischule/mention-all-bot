@@ -58,11 +58,13 @@ dispatcher = updater.dispatcher
 in_handler = CommandHandler('in', in_command)
 all_handler = CommandHandler('all', all_command)
 out_handler = CommandHandler('out', out_command)
+start_handler = CommandHandler('start', start_command)
 unknown_command = MessageHandler(Filters.command, unknown_command)
 
 dispatcher.add_handler(in_handler)
 dispatcher.add_handler(all_handler)
 dispatcher.add_handler(out_handler)
+dispatcher.add_handler(start_handler)
 dispatcher.add_handler(unknown_command)
 
 updater.start_polling()
