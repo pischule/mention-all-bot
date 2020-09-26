@@ -36,16 +36,21 @@ def out_command(update, context):
     message = f'You\' ve been opted out {user_name}'
     context.bot.send_message(chat_id=chat_id, text=message)
 
+def chunks(l, n):
+    n = max(1, n)
+    return (l[i:i+n] for i in range(0, len(l), n))
 
 def all_command(update, context):
     chat_id = update.effective_chat.id
     user_list = db.get_users_from_chat(chat_id)
     if not user_list:
         message = 'There are no users\\. To opt in type /in command'
+        context.bot.send_message(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
     else:
         user_list = [f'[{user_name}](tg://user?id={user_id})' for user_id, user_name in user_list]
-        message = ', '.join(user_list)
-    context.bot.send_message(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
+        for chunk in chunks(user_list, 4):
+            message = ', '.join(chunk)
+            context.bot.send_message(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
 
 
 def unknown_command(update, context):
