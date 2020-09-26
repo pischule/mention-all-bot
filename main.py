@@ -9,7 +9,7 @@ from constants import *
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-db = BotDatabase('bot_users.db')
+db = BotDatabase('database.db')
 
 
 def start_command(update, context):
