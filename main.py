@@ -2,6 +2,7 @@ import logging
 
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.utils.helpers import mention_markdown
 
 from bot_database import BotDatabase
 from constants import *
@@ -45,9 +46,9 @@ def all_command(update, context):
     user_list = db.get_users_from_chat(chat_id)
     if not user_list:
         message = 'There are no users\\. To opt in type /in command'
-        context.bot.send_message(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
+        context.bot.send_message(chat_id=chat_id, text=message)
     else:
-        user_list = [f'[{user_name}](tg://user?id={user_id})' for user_id, user_name in user_list]
+        user_list = [mention_markdown(user_id, user_name, version=2) for user_id, user_name in user_list]
         for chunk in chunks(user_list, 4):
             message = ', '.join(chunk)
             context.bot.send_message(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
