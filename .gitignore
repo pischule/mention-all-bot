@@ -1,7 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 
 constants.py
-database.db.db
+database.db
 
 .idea/**
 
