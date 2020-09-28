@@ -10,8 +10,10 @@ class BotDatabase:
 
     def add_user(self, user_id, username):
         cursor = self.conn.cursor()
-        sql_query = '''INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?);'''
-        cursor.execute(sql_query, (user_id, username))
+        sql_insert_query = '''INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?);'''
+        sql_update_query = '''UPDATE users SET username = ? WHERE user_id = ?;'''
+        cursor.execute(sql_insert_query, (user_id, username))
+        cursor.execute(sql_update_query, (username, user_id))
         self.conn.commit()
         cursor.close()
 
