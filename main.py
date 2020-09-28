@@ -45,7 +45,7 @@ def all_command(update, context):
     chat_id = update.effective_chat.id
     user_list = db.get_users_from_chat(chat_id)
     if not user_list:
-        message = 'There are no users\\. To opt in type /in command'
+        message = 'There are no users. To opt in type /in command'
         context.bot.send_message(chat_id=chat_id, text=message)
     else:
         user_list = [mention_markdown(user_id, user_name, version=2) for user_id, user_name in user_list]
