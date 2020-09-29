@@ -57,7 +57,9 @@ def all_command(update, context):
 
 
 def stats_command(update, context):
-    message = f'user_count: {db.count_users()[0]}\nchat_count: {db.count_chats()[0]}'
+    message = f'user_count: {db.count_users()[0]}\n' \
+              f'chat_count: {db.count_chats()[0]}\n' \
+              f'group_count: {db.count_groups()[0]}'
     context.bot.send_message(update.effective_chat.id, text=message)
 
 

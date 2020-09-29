@@ -73,6 +73,14 @@ class BotDatabase:
         cursor.close()
         return count
 
+    def count_groups(self):
+        cursor = self.conn.cursor()
+        sql_query = '''SELECT COUNT(DISTINCT chat_id) FROM chats WHERE chat_id <> user_id;'''
+        cursor.execute(sql_query)
+        count = cursor.fetchone()
+        cursor.close()
+        return count
+
     def _add_users_table(self):
         cursor = self.conn.cursor()
         sql_query = '''CREATE TABLE IF NOT EXISTS 
@@ -80,6 +88,7 @@ class BotDatabase:
         cursor.execute(sql_query)
         self.conn.commit()
         cursor.close()
+
 
     def _add_chats_table(self):
         cursor = self.conn.cursor()
