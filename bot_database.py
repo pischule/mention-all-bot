@@ -57,6 +57,22 @@ class BotDatabase:
         self.conn.commit()
         cursor.close()
 
+    def count_users(self):
+        cursor = self.conn.cursor()
+        sql_query = '''SELECT COUNT(user_id) FROM users;'''
+        cursor.execute(sql_query)
+        count = cursor.fetchone()
+        cursor.close()
+        return count
+
+    def count_chats(self):
+        cursor = self.conn.cursor()
+        sql_query = '''SELECT COUNT(DISTINCT chat_id) FROM chats;'''
+        cursor.execute(sql_query)
+        count = cursor.fetchone()
+        cursor.close()
+        return count
+
     def _add_users_table(self):
         cursor = self.conn.cursor()
         sql_query = '''CREATE TABLE IF NOT EXISTS 
