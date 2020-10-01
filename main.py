@@ -47,7 +47,7 @@ def all_command(update, context):
         text = escape_markdown('There are no users. To opt in type /in command', version=2)
     else:
         user_list = [mention_markdown(user_id, '\u2060', version=2) for user_id, user_name in user_list]
-        text = 'Mentioned *all*' + ''.join(user_list)
+        text = '🔔 Mentioned *all*' + ''.join(user_list)
     context.bot.send_message(chat_id=chat_id, text=text, reply_to_message_id = message_id,
                              parse_mode=telegram.ParseMode.MARKDOWN_V2)
 
