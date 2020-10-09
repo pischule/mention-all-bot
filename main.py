@@ -52,7 +52,7 @@ def all_command(update, context):
     else:
         user_list = [mention_markdown(user_id, user_name, version=2) for user_id, user_name in user_list]
         for chunk in chunks(user_list, 4):
-            message = ', '.join(chunk)
+            message = ' '.join(chunk)
             context.bot.send_message(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
 
 
