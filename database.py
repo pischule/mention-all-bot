@@ -88,7 +88,7 @@ class BotDatabase:
     def _add_users_table(self):
         cursor = self.conn.cursor()
         sql_query = '''CREATE TABLE IF NOT EXISTS 
-                                    users (user_id INT, username VARCHAR(64), PRIMARY KEY (user_id));'''
+                                    users (user_id BIGINT, username VARCHAR(64), PRIMARY KEY (user_id));'''
         cursor.execute(sql_query)
         self.conn.commit()
         cursor.close()
@@ -97,8 +97,8 @@ class BotDatabase:
         cursor = self.conn.cursor()
         sql_query = '''
             CREATE TABLE IF NOT EXISTS chats (
-                chat_id INT, 
-                user_id INT, 
+                chat_id BIGINT, 
+                user_id BIGINT, 
                 PRIMARY KEY (chat_id, user_id),
                 FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE );'''
         cursor.execute(sql_query)
