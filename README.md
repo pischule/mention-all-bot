@@ -34,7 +34,7 @@ echo "TGBOT_TOKEN=????????" > .env
 echo "DB_PWD=????????" >> .env
 
 # run the app
-docker-compose up
+docker-compose up -d
 ```
 
 ## Contributing
