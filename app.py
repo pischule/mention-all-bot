@@ -1,11 +1,13 @@
+import os
 import logging
 
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_markdown
 
-from bot_database import BotDatabase
-from constants import *
+from database import BotDatabase
+
+TOKEN = os.getenv('TGBOT_TOKEN')
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
