@@ -27,17 +27,14 @@ Commands:
 ```bash
 # clone the repo
 git clone git@github.com:pischule/mention-all-bot.git
-
 cd mention-all-bot
 
-# install dependencies
-pipenv install
+# set your bot token and db password
+echo "TGBOT_TOKEN=????????" > .env
+echo "DB_PWD=????????" >> .env
 
-# put your bot token into constants.py
-echo "TOKEN = '??????????'" > constants.py
-
-# run the bot
-pipenv run main.py
+# run the app
+docker-compose up
 ```
 
 ## Contributing
