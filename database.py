@@ -13,97 +13,79 @@ class BotDatabase:
         self._add_chats_table()
 
     def add_user(self, user_id, username):
-        cursor = self.conn.cursor()
-        sql_insert_query = '''INSERT INTO users (user_id, username) VALUES (%s, %s) ON CONFLICT DO NOTHING;'''
-        sql_update_query = '''UPDATE users SET username = %s WHERE user_id = %s;'''
-        cursor.execute(sql_insert_query, (user_id, username))
-        cursor.execute(sql_update_query, (username, user_id))
-        self.conn.commit()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            query = '''INSERT INTO users (user_id, username) VALUES (%s, %s) ON CONFLICT (user_id) do UPDATE SET username = %s'''
+            cursor.execute(query, (user_id, username, username))
+            self.conn.commit()
 
     def get_all_users(self):
-        cursor = self.conn.cursor()
-        sql_query = '''SELECT user_id, username FROM users;'''
-        cursor.execute(sql_query)
-        records = cursor.fetchall()
-        cursor.close()
-        return records
+        with self.conn.cursor() as cursor:
+            query = '''SELECT user_id, username FROM users'''
+            cursor.execute(query)
+            return cursor.fetchall()
 
     def get_users_from_chat(self, group_id):
-        cursor = self.conn.cursor()
-        sql_query = '''SELECT c.user_id, u.username 
-                       FROM chats c 
-                       JOIN users u on c.user_id = u.user_id 
-                       WHERE c.chat_id=%s;'''
-        cursor.execute(sql_query, (group_id,))
-        records = cursor.fetchall()
-        cursor.close()
-        return records
+        with self.conn.cursor() as cursor:
+            query = '''SELECT c.user_id, u.username 
+                        FROM chats c 
+                        JOIN users u on c.user_id = u.user_id 
+                        WHERE c.chat_id=%s'''
+            cursor.execute(query, (group_id,))
+            return cursor.fetchall()
 
     def add_user_to_chat(self, chat_id, user_id):
-        cursor = self.conn.cursor()
-        sql_query = '''INSERT INTO chats (chat_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING;'''
-        cursor.execute(sql_query, (chat_id, user_id))
-        self.conn.commit()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            query = '''INSERT INTO chats (chat_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING'''
+            cursor.execute(query, (chat_id, user_id))
+            self.conn.commit()
 
     def delete_user_from_chat(self, chat_id, user_id):
-        cursor = self.conn.cursor()
-        sql_query = '''DELETE from chats WHERE chat_id=%s AND user_id=%s;'''
-        cursor.execute(sql_query, (chat_id, user_id))
-        self.conn.commit()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            query = '''DELETE from chats WHERE chat_id = %s AND user_id = %s'''
+            cursor.execute(query, (chat_id, user_id))
+            self.conn.commit()
 
     def update_user_username(self, user_id, new_username):
-        cursor = self.conn.cursor()
-        sql_update_query = '''UPDATE users SET username=%s WHERE user_id=%s;'''
-        cursor.execute(sql_update_query, (new_username, user_id))
-        self.conn.commit()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            sql_update_query = '''UPDATE users SET username = %s WHERE user_id = %s'''
+            cursor.execute(sql_update_query, (new_username, user_id))
+            self.conn.commit()
 
     def count_users(self):
-        cursor = self.conn.cursor()
-        sql_query = '''SELECT COUNT(user_id) FROM users;'''
-        cursor.execute(sql_query)
-        count = cursor.fetchone()
-        cursor.close()
-        return count
+        with self.conn.cursor() as cursor:
+            query = '''SELECT COUNT(user_id) FROM users'''
+            cursor.execute(query)
+            return cursor.fetchone()
 
     def count_chats(self):
-        cursor = self.conn.cursor()
-        sql_query = '''SELECT COUNT(DISTINCT chat_id) FROM chats;'''
-        cursor.execute(sql_query)
-        count = cursor.fetchone()
-        cursor.close()
-        return count
+        with self.conn.cursor() as cursor:
+            query = '''SELECT COUNT(DISTINCT chat_id) FROM chats'''
+            cursor.execute(query)
+            return cursor.fetchone()
 
     def count_groups(self):
-        cursor = self.conn.cursor()
-        sql_query = '''SELECT COUNT(DISTINCT chat_id) FROM chats WHERE chat_id <> user_id;'''
-        cursor.execute(sql_query)
-        count = cursor.fetchone()
-        cursor.close()
-        return count
+        with self.conn.cursor() as cursor:
+            query = '''SELECT COUNT(DISTINCT chat_id) FROM chats WHERE chat_id <> user_id'''
+            cursor.execute(query)
+            return cursor.fetchone()
 
     def _add_users_table(self):
-        cursor = self.conn.cursor()
-        sql_query = '''CREATE TABLE IF NOT EXISTS 
-                                    users (user_id BIGINT, username VARCHAR(64), PRIMARY KEY (user_id));'''
-        cursor.execute(sql_query)
-        self.conn.commit()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            query = '''CREATE TABLE IF NOT EXISTS 
+                                        users (user_id BIGINT, username VARCHAR(64), PRIMARY KEY (user_id))'''
+            cursor.execute(query)
+            self.conn.commit()
 
     def _add_chats_table(self):
-        cursor = self.conn.cursor()
-        sql_query = '''
-            CREATE TABLE IF NOT EXISTS chats (
-                chat_id BIGINT, 
-                user_id BIGINT, 
-                PRIMARY KEY (chat_id, user_id),
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE );'''
-        cursor.execute(sql_query)
-        self.conn.commit()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            query = '''
+                CREATE TABLE IF NOT EXISTS chats (
+                    chat_id BIGINT, 
+                    user_id BIGINT, 
+                    PRIMARY KEY (chat_id, user_id),
+                    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE )'''
+            cursor.execute(query)
+            self.conn.commit()
 
     def close(self):
         self.conn.close()
