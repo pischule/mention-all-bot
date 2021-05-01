@@ -16,7 +16,7 @@ db = BotDatabase('database.db')
 
 
 def start_command(update, context):
-    message = 'Hey! I can help notify everyone in the group when someone needs them. \
+    message = 'Hey! I can help notify everyone 📢 in the group when someone needs them. \
 Everyone who wishes to receive mentions needs to /in to opt-in. All opted-in users can then be mentioned using /all'
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
@@ -61,7 +61,8 @@ def all_command(update, context):
                      for user_id, user_name in user_list]
         for chunk in chunks(user_list, 4):
             message = ' '.join(chunk)
-            context.bot.send_message(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
+            context.bot.send_message(
+                chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
 
 
 def stats_command(update, context):
@@ -72,25 +73,24 @@ def stats_command(update, context):
 
 
 def unknown_command(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text="Sorry, I didn't understand that command.")
 
 
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
-in_handler = CommandHandler('in', in_command)
-all_handler = CommandHandler('all', all_command)
-out_handler = CommandHandler('out', out_command)
-start_handler = CommandHandler('start', start_command)
-stats_handler = CommandHandler('stats', stats_command)
-unknown_command = MessageHandler(Filters.command, unknown_command)
+handlers = [
+    CommandHandler('in', in_command),
+    CommandHandler('all', all_command),
+    CommandHandler('out', out_command),
+    CommandHandler('start', start_command),
+    CommandHandler('stats', stats_command),
+    MessageHandler(Filters.command, unknown_command),
+]
 
-dispatcher.add_handler(in_handler)
-dispatcher.add_handler(all_handler)
-dispatcher.add_handler(out_handler)
-dispatcher.add_handler(start_handler)
-dispatcher.add_handler(stats_handler)
-dispatcher.add_handler(unknown_command)
+for handler in handlers:
+    dispatcher.add_handler(handler)
 
 updater.start_polling()
 updater.idle()
