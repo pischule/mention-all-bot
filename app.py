@@ -40,9 +40,9 @@ def out_command(update, context):
     context.bot.send_message(chat_id=chat_id, text=message)
 
 
-def chunks(l, n):
-    n = max(1, n)
-    return (l[i:i + n] for i in range(0, len(l), n))
+def chunks(elements, size):
+    n = max(1, size)
+    return (elements[i:i + n] for i in range(0, len(elements), n))
 
 
 def unicode_truncate(s, length, encoding='utf-8'):
@@ -57,9 +57,9 @@ def all_command(update, context):
         message = 'There are no users. To opt in type /in command'
         context.bot.send_message(chat_id=chat_id, text=message)
     else:
-        user_list = [mention_markdown(user_id, unicode_truncate(user_name, 100), version=2)
-                     for user_id, user_name in user_list]
-        for chunk in chunks(user_list, 4):
+        mentions = [mention_markdown(user_id, unicode_truncate(user_name, 100), version=2)
+                    for user_id, user_name in user_list]
+        for chunk in chunks(mentions, 4):
             message = ' '.join(chunk)
             context.bot.send_message(
                 chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN_V2)
