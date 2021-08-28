@@ -9,8 +9,7 @@ from database import BotDatabase
 
 TOKEN = os.getenv('TGBOT_TOKEN')
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(filename='logs.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 db = BotDatabase('database.db')
 
@@ -24,6 +23,7 @@ Everyone who wishes to receive mentions needs to /in to opt-in. All opted-in use
 def in_command(update, context):
     chat_id = update.effective_chat.id
     user = update.effective_user
+    logging.info('/in called, chat_id=%s user_id=%s', chat_id, user.id)
     user_name = user.username or user.first_name or 'anonymous'
     db.add_user(user.id, user_name)
     db.add_user_to_chat(chat_id, user.id)
@@ -53,6 +53,7 @@ def unicode_truncate(s, length, encoding='utf-8'):
 def all_command(update, context):
     chat_id = update.effective_chat.id
     user_list = db.get_users_from_chat(chat_id)
+    logging.info('/all called, chat_id=%s user_count=%s', chat_id, len(user_list))
     if not user_list:
         message = 'There are no users. To opt in type /in command'
         context.bot.send_message(chat_id=chat_id, text=message)
