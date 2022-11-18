@@ -4,7 +4,7 @@ mention-all-bot is a telegram bot that helps to mention all users in a group.
 
 ## Usage
 
-1. Use [hosted](https://t.me/mention_all_the_bot) or host yourself
+1. Use [hosted](https://t.me/mention_all_the_bot?startgroup) or host yourself
 
 1. Add to your group
 
