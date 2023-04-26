@@ -36,7 +36,7 @@ def out_command(update, context):
     user = update.effective_user
     user_name = user.username or user.first_name or 'anonymous'
     db.delete_user_from_chat(chat_id, user.id)
-    message = f'You\' ve been opted out {user_name}'
+    message = f'You\'ve been opted out {user_name}'
     context.bot.send_message(chat_id=chat_id, text=message)
 
 
@@ -67,9 +67,9 @@ def all_command(update, context):
 
 
 def stats_command(update, context):
-    message = f'user_count: {db.count_users()[0]}\n' \
-              f'chat_count: {db.count_chats()[0]}\n' \
-              f'group_count: {db.count_groups()[0]}'
+    message = f'users: {db.count_users()[0]}\n' \
+              f'chats: {db.count_chats()[0]}\n' \
+              f'groups: {db.count_groups()[0]}'
     context.bot.send_message(update.effective_chat.id, text=message)
 
 

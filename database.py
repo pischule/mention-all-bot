@@ -1,13 +1,12 @@
 import os
 import psycopg2
 
-DB_PWD = os.environ['DB_PWD']
+DB_CONNSTRING = os.environ['DB_CONNSTRING']
 
 
 class BotDatabase:
     def __init__(self, filename):
-        self.conn = psycopg2.connect(
-            f"dbname='postgres' user='postgres' host='db' password='{DB_PWD}'")
+        self.conn = psycopg2.connect(DB_CONNSTRING)
 
         self._add_users_table()
         self._add_chats_table()

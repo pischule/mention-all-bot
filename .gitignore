@@ -162,3 +162,5 @@ cython_debug/
 
 # Editor-based Rest Client
 .idea/httpRequests
+
+docker-compose.yml

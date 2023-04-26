@@ -24,21 +24,29 @@ Commands:
 
 ## Installation
 
-```bash
-# clone the repo
-git clone https://github.com/pischule/mention-all-bot.git
-cd mention-all-bot
-
-# set your bot token and db password
-echo "TGBOT_TOKEN=????????" > .env
-echo "DB_PWD=????????" >> .env
-
-# run the app
-docker-compose up -d
+`docker-compose.yml`:
+```yaml
+services:
+  app:
+    image: ghcr.io/pischule/mention-all-bot:main
+    restart: always
+    environment:
+      TGBOT_TOKEN: "token_example"
+      DB_CONNSTRING : "host=db port=5432 dbname=postgres user=postgres password=password_example"
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "password_example"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  postgres-data:
 ```
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+```shell
+docker compose up -d
+```
 
 ## License
 GNU GPLv3
