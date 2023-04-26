@@ -28,7 +28,7 @@ Commands:
 ```yaml
 services:
   app:
-    image: ghcr.io/pischule/mention-all-bot:main
+    image: ghcr.io/pischule/mention-all-bot:master
     restart: always
     environment:
       TGBOT_TOKEN: "token_example"
