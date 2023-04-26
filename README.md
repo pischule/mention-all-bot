@@ -31,13 +31,13 @@ services:
     image: ghcr.io/pischule/mention-all-bot:main
     restart: always
     environment:
-      TGBOT_TOKEN: "<< bot token >>"
-      DB_PWD: "<< db password >>"
+      TGBOT_TOKEN: "token_example"
+      DB_CONNSTRING : "host=db port=5432 dbname=postgres user=postgres password=password_example"
   db:
     image: postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: "<< db password >>"
+      POSTGRES_PASSWORD: "password_example"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 volumes:
