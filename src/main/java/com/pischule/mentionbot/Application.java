@@ -23,7 +23,7 @@ public class Application {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        var propertiesPath = Path.of("application.properties");
+        var propertiesPath = Path.of("config/application.properties");
         var properties = new Properties();
         try (var reader = Files.newBufferedReader(propertiesPath)) {
             properties.load(reader);
