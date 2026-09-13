@@ -206,11 +206,11 @@ public class TelegramUpdateHandler {
             sendMessage.setParseMode(ParseMode.HTML);
 
             var response = bot.execute(sendMessage);
-            if (!response.isOk()) {
+            if (response.isOk()) {
+                sentMessageDao.insert(chatId, response.message().messageId());
+            } else {
                 logger.error("Failed to send message {}", response);
             }
-
-            sentMessageDao.insert(chatId, response.message().messageId());
         }
     }
 
