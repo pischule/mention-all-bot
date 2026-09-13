@@ -1,5 +1,7 @@
 package com.pischule.mentionbot.service;
 
+import static com.pischule.mentionbot.util.LoggingUtil.withResponse;
+
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.DeleteMessages;
 import com.pischule.mentionbot.dao.SentMessageDao;
@@ -52,9 +54,9 @@ public class MessageCleaner {
                     .toArray();
             var response = bot.execute(new DeleteMessages(chatId, messageIds));
             if (response.isOk()) {
-                logger.atInfo().log("Deleted {} messages from chat {}", messages.size(), chatId);
+                logger.atInfo().addKeyValue("chat_id", chatId).log("Deleted {} messages from chat", messages.size());
             } else {
-                logger.atWarn().log("Failed to delete message {}", response);
+                withResponse(logger.atWarn(), response).log("Failed to delete message {}", response);
             }
 
             for (var m : messages) {

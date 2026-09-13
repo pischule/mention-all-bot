@@ -18,7 +18,7 @@ public class LiquibaseRunner {
     }
 
     public void update() throws Exception {
-        logger.info("Running liquibase");
+        logger.atInfo().log("Running liquibase");
 
         Scope.child(Scope.Attr.resourceAccessor, new ClassLoaderResourceAccessor(), () -> {
             CommandScope update = new CommandScope("update");
@@ -27,6 +27,6 @@ public class LiquibaseRunner {
             update.execute();
         });
 
-        logger.info("Successfully ran liquibase update");
+        logger.atInfo().log("Successfully ran liquibase update");
     }
 }

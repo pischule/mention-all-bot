@@ -1,10 +1,13 @@
 package com.pischule.mentionbot.service;
 
+import static com.pischule.mentionbot.util.LoggingUtil.*;
+
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.BaseResponse;
 import com.pischule.mentionbot.dao.ChatStatsDao;
 import com.pischule.mentionbot.dao.ChatUserDao;
 import com.pischule.mentionbot.dao.SentMessageDao;
@@ -48,7 +51,7 @@ public class TelegramUpdateHandler {
                     if (e.response() == null) {
                         logger.atError().log("Error while handling update", e);
                     } else {
-                        var response = e.response();
+                        BaseResponse response = e.response();
                         logger.atError()
                                 .addKeyValue("errorCode", response.errorCode())
                                 .addKeyValue("description", response.description())
@@ -137,7 +140,8 @@ public class TelegramUpdateHandler {
                         stats.b250(),
                         stats.b50(),
                         stats.bMore());
-        send(message.chat().id(), text, ParseMode.MarkdownV2);
+        send(message.chat().id(), text, ParseMode.MarkdownV2, false);
+        withMessage(logger.atInfo(), message).log("Processed STATS_RECENT command");
     }
 
     private void handleStats(Message message) {
@@ -150,7 +154,9 @@ public class TelegramUpdateHandler {
                 Groups: %6d`
                 """.formatted(stats.users(), stats.chats(), stats.groups());
 
-        send(chatId, text, ParseMode.MarkdownV2);
+        send(chatId, text, ParseMode.MarkdownV2, false);
+
+        withMessage(logger.atInfo(), message).log("Processed STATS command");
     }
 
     private void handleNewChatMembers(Message message) {
@@ -172,19 +178,16 @@ public class TelegramUpdateHandler {
         long chatId = message.chat().id();
         long userId = message.leftChatMember().id();
 
-        logger.atInfo()
-                .addKeyValue("chat_id", chatId)
-                .addKeyValue("user_id", userId)
-                .log("User left chat");
-
         chatUserDao.delete(chatId, userId);
+
+        withMessage(logger.atInfo(), message).addKeyValue("user_id", userId).log("Chat member left");
     }
 
     private void handleAll(Message message) {
         long chatId = message.chat().id();
         var users = chatUserDao.findAllByChatId(chatId);
         if (users.isEmpty()) {
-            send(chatId, "There are no users. To opt in type /in command", null);
+            send(chatId, "There are no users. To opt in type /in command");
             return;
         }
 
@@ -202,16 +205,10 @@ public class TelegramUpdateHandler {
             var chunk = mentions.subList(offset, toIndex);
 
             var text = String.join(" ", chunk);
-            var sendMessage = new SendMessage(chatId, text);
-            sendMessage.setParseMode(ParseMode.HTML);
-
-            var response = bot.execute(sendMessage);
-            if (response.isOk()) {
-                sentMessageDao.insert(chatId, response.message().messageId());
-            } else {
-                logger.error("Failed to send message {}", response);
-            }
+            send(chatId, text, ParseMode.HTML, true);
         }
+
+        withMessage(logger.atInfo(), message).log("Processed ALL command");
     }
 
     private void handleOut(Message message) {
@@ -222,7 +219,9 @@ public class TelegramUpdateHandler {
         touchChatStats(message);
 
         var username = extractUsername(message.from());
-        send(chatId, "You've been opted out %s".formatted(username), null);
+        send(chatId, "You've been opted out %s".formatted(username));
+
+        withMessage(logger.atInfo(), message).log("Processed OUT command");
     }
 
     private void handleStart(Message message) {
@@ -230,7 +229,8 @@ public class TelegramUpdateHandler {
         String text = "Hey! I can help notify everyone 📢 in the group when someone needs them. "
                 + "Everyone who wishes to receive mentions needs to /in to opt-in. "
                 + "All opted-in users can then be mentioned using /all";
-        send(chatId, text, null);
+        send(chatId, text);
+        withMessage(logger.atInfo(), message).log("Processed START command");
     }
 
     private void handleIn(Message message) {
@@ -244,18 +244,27 @@ public class TelegramUpdateHandler {
         var username = extractUsername(from);
 
         chatUserDao.insert(chatId, userId, username);
-
-        send(chatId, "Thanks for opting in %s".formatted(username), null);
+        send(chatId, "Thanks for opting in %s".formatted(username));
+        withMessage(logger.atInfo(), message).log("Processed IN command");
     }
 
-    private void send(long chatId, String text, ParseMode parseMode) {
+    private void send(long chatId, String text) {
+        send(chatId, text, null, false);
+    }
+
+    private void send(long chatId, String text, ParseMode parseMode, boolean deleteLater) {
         var request = new SendMessage(chatId, text);
         if (parseMode != null) {
             request.setParseMode(parseMode);
         }
         var response = bot.execute(request);
-        if (!response.isOk()) {
-            logger.error("Failed to send message. {}", response);
+        if (response.isOk()) {
+            logger.atDebug().addKeyValue(CHAT_ID_KEY, chatId).log("Sent message");
+            if (deleteLater) {
+                sentMessageDao.insert(chatId, response.message().messageId());
+            }
+        } else {
+            withResponse(logger.atError(), response).log("Failed to send message");
         }
     }
 

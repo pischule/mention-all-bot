@@ -50,15 +50,15 @@ public class Application {
         var messageCleaner = new MessageCleaner(sentMessageDao, bot);
 
         // cleanup
-        var cleanerThread = new Thread(messageCleaner::launchLoop);
+        var cleanerThread = new Thread(messageCleaner::launchLoop, "clean");
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("Received shutdown signal");
+            logger.atInfo().log("Received shutdown signal");
 
             cleanerThread.interrupt();
-            logger.info("Stopped message cleaner");
+            logger.atInfo().log("Stopped message cleaner");
 
             bot.shutdown();
-            logger.info("Stopped bot");
+            logger.atInfo().log("Stopped bot");
         }));
 
         // start
