@@ -6,12 +6,15 @@ import com.pischule.mentionbot.dao.ChatUserDao;
 import com.pischule.mentionbot.dao.SentMessageDao;
 import com.pischule.mentionbot.dao.SqliteDao;
 import com.pischule.mentionbot.service.MessageCleaner;
+import com.pischule.mentionbot.service.MessageSender;
 import com.pischule.mentionbot.service.TelegramUpdateHandler;
 import com.pischule.mentionbot.util.JdbcTemplate;
 import com.pischule.mentionbot.util.LiquibaseRunner;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -42,11 +45,13 @@ public class Application {
         var chatUsersDao = new ChatUserDao(jdbcTemplate);
         var sentMessageDao = new SentMessageDao(jdbcTemplate);
         var chatStatsDao = new ChatStatsDao(jdbcTemplate);
+        var senderExecutor = Executors.newScheduledThreadPool(4);
 
         sqliteDao.enableJournalModeWal();
 
         var bot = new TelegramBot(botToken);
-        var updateHandler = new TelegramUpdateHandler(bot, chatUsersDao, sentMessageDao, chatStatsDao);
+        var messageSender = new MessageSender(bot, sentMessageDao, senderExecutor);
+        var updateHandler = new TelegramUpdateHandler(bot, chatUsersDao, chatStatsDao, messageSender);
         var messageCleaner = new MessageCleaner(sentMessageDao, bot);
 
         // cleanup
@@ -59,6 +64,20 @@ public class Application {
 
             bot.shutdown();
             logger.atInfo().log("Stopped bot");
+
+            logger.atInfo().log("Stopping sender executor");
+            senderExecutor.shutdown();
+            try {
+                if (!senderExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+                    senderExecutor.shutdownNow();
+                    logger.warn("Force shutdown sender executor");
+                } else {
+                    logger.info("Gracefully shutdown sender executor");
+                }
+            } catch (InterruptedException e) {
+                senderExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }));
 
         // start
