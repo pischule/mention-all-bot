@@ -2,7 +2,6 @@ package com.pischule.mentionbot.dao;
 
 import com.pischule.mentionbot.model.SentMessage;
 import com.pischule.mentionbot.util.JdbcTemplate;
-
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;

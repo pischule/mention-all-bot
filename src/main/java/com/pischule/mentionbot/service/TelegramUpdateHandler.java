@@ -8,11 +8,9 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.pischule.mentionbot.dao.ChatStatsDao;
 import com.pischule.mentionbot.dao.ChatUserDao;
 import com.pischule.mentionbot.dao.SentMessageDao;
-
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Stream;
-
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +78,9 @@ public class TelegramUpdateHandler {
             return;
         }
 
+        if (message.entities() == null) {
+            return;
+        }
         var commandEntity = Arrays.stream(message.entities())
                 .filter(e -> e.type() == MessageEntity.Type.bot_command)
                 .findFirst()
@@ -110,7 +111,7 @@ public class TelegramUpdateHandler {
                 `Users:   %5d
                 Chats:   %5d
                 Groups:  %5d
-                
+
                 Groups by size:
                 0:       %5d
                 1:       %5d
@@ -123,19 +124,19 @@ public class TelegramUpdateHandler {
                 251-500: %5d
                 500+: 	  %5d`
                 """.formatted(
-                stats.users(),
-                stats.chats(),
-                stats.groups(),
-                stats.b0(),
-                stats.b1(),
-                stats.b5(),
-                stats.b10(),
-                stats.b25(),
-                stats.b50(),
-                stats.b100(),
-                stats.b250(),
-                stats.b50(),
-                stats.bMore());
+                        stats.users(),
+                        stats.chats(),
+                        stats.groups(),
+                        stats.b0(),
+                        stats.b1(),
+                        stats.b5(),
+                        stats.b10(),
+                        stats.b25(),
+                        stats.b50(),
+                        stats.b100(),
+                        stats.b250(),
+                        stats.b50(),
+                        stats.bMore());
         send(message.chat().id(), text, ParseMode.MarkdownV2);
     }
 

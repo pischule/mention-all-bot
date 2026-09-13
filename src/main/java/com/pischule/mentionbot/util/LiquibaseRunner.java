@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LiquibaseRunner {
-    public static final Logger logger = LoggerFactory.getLogger(LiquibaseRunner.class);
+    private static final Logger logger = LoggerFactory.getLogger(LiquibaseRunner.class);
 
     private final String jdbcUrl;
     private final String changelogFile;
