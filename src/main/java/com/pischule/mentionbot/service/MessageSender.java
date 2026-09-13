@@ -35,10 +35,10 @@ public class MessageSender {
     }
 
     public void send(long chatId, String text) {
-        send(chatId, text, null, false);
+        send(chatId, text, null, false, 1);
     }
 
-    public void send(long chatId, String text, ParseMode parseMode, boolean deleteLater) {
+    public void send(long chatId, String text, ParseMode parseMode, boolean deleteLater, int expectedCount) {
         var request = new SendMessage(chatId, text);
         if (parseMode != null) {
             request.setParseMode(parseMode);
@@ -51,7 +51,8 @@ public class MessageSender {
             if (old == null) {
                 return now;
             } else {
-                return old.plus(SAME_CHAT_DELAY);
+                var delay = expectedCount >= 20 ? LARGE_CHAT_DELAY : SMALL_CHAT_DELAY;
+                return old.plus(delay);
             }
         });
 
@@ -88,6 +89,7 @@ public class MessageSender {
         logger.atInfo().log("Cleaned timer map. {} -> {}", sizeBefore, sizeAfter);
     }
 
-    private static final Duration SAME_CHAT_DELAY = Duration.ofMillis(1100);
+    private static final Duration SMALL_CHAT_DELAY = Duration.ofMillis(1100);
+    private static final Duration LARGE_CHAT_DELAY = Duration.ofMillis(3100);
     private static final Duration RATE_LIMIT_WINDOW = Duration.ofSeconds(70);
 }

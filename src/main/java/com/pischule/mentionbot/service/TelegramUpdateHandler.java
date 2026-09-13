@@ -136,7 +136,7 @@ public class TelegramUpdateHandler {
                         stats.b250(),
                         stats.b50(),
                         stats.bMore());
-        messageSender.send(message.chat().id(), text, ParseMode.MarkdownV2, false);
+        messageSender.send(message.chat().id(), text, ParseMode.MarkdownV2, false, 1);
         withMessage(logger.atInfo(), message).log("Processed STATS_RECENT command");
     }
 
@@ -150,7 +150,7 @@ public class TelegramUpdateHandler {
                 Groups: %6d`
                 """.formatted(stats.users(), stats.chats(), stats.groups());
 
-        messageSender.send(chatId, text, ParseMode.MarkdownV2, false);
+        messageSender.send(chatId, text, ParseMode.MarkdownV2, false, 1);
 
         withMessage(logger.atInfo(), message).log("Processed STATS command");
     }
@@ -196,12 +196,13 @@ public class TelegramUpdateHandler {
                 })
                 .toList();
 
+        int chunksCount = Math.ceilDiv(mentions.size(), MENTIONS_PER_MESSAGE);
         for (int offset = 0; offset < mentions.size(); offset += MENTIONS_PER_MESSAGE) {
             var toIndex = Math.min(offset + MENTIONS_PER_MESSAGE, mentions.size());
             var chunk = mentions.subList(offset, toIndex);
 
             var text = String.join(" ", chunk);
-            messageSender.send(chatId, text, ParseMode.HTML, true);
+            messageSender.send(chatId, text, ParseMode.HTML, true, chunksCount);
         }
 
         withMessage(logger.atInfo(), message).log("Processed ALL command");
