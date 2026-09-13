@@ -93,7 +93,7 @@ public class MessageSender {
         chatIdToLastSend.entrySet().removeIf(e -> e.getValue().isBefore(forgetAllBefore));
         int sizeAfter = chatIdToLastSend.size();
 
-        logger.atInfo().log("Cleaned timer map. {} -> {}", sizeBefore, sizeAfter);
+        logger.atDebug().log("Cleaned timer map. {} -> {}", sizeBefore, sizeAfter);
     }
 
     private static final Duration SMALL_CHAT_DELAY = Duration.ofMillis(1100);
