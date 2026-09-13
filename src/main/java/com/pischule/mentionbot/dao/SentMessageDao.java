@@ -26,7 +26,7 @@ public class SentMessageDao {
                         OffsetDateTime.parse(rs.getString("created_at").replace(" ", "T"))
                                 .toInstant(),
                         rs.getLong("chat_id"),
-                        rs.getLong("message_id")));
+                        rs.getInt("message_id")));
     }
 
     public void deleteById(long id) {
@@ -38,7 +38,7 @@ public class SentMessageDao {
         jdbcTemplate.update(sql, id);
     }
 
-    public void insert(long chatId, long messageId) {
+    public void insert(long chatId, int messageId) {
         jdbcTemplate.update("""
                 insert into sent_messages
                 (chat_id, message_id, created_at)

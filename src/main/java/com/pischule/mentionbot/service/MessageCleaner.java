@@ -51,8 +51,7 @@ public class MessageCleaner {
             var chatId = e.getKey();
             var messages = e.getValue();
 
-            var messageIds =
-                    messages.stream().map(it -> Math.toIntExact(it.messageId())).toList();
+            var messageIds = messages.stream().map(SentMessage::messageId).toList();
 
             var messageIdChunks = CollectionUtil.chunked(messageIds, MESSAGES_PER_DELETE);
 
@@ -60,9 +59,7 @@ public class MessageCleaner {
                 var chunkArray = chunk.stream().mapToInt(it -> it).toArray();
                 var response = bot.execute(new DeleteMessages(chatId, chunkArray));
                 if (response.isOk()) {
-                    logger.atInfo()
-                            .addKeyValue(CHAT_ID_KEY, chatId)
-                            .log("Deleted {} messages from chat", chunk.size());
+                    logger.atInfo().addKeyValue(CHAT_ID_KEY, chatId).log("Deleted {} messages from chat", chunk.size());
                 } else {
                     withResponse(logger.atWarn(), response)
                             .addKeyValue(CHAT_ID_KEY, chatId)
