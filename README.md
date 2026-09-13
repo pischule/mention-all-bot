@@ -19,7 +19,6 @@ Commands:
 /in - Opt-in to receive mentions
 /out - Opt-out of receiving mentions
 /all - Mention all opted-in users
-/stats - Display bot stats
 ```
 
 ## Installation

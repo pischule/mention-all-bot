@@ -1,0 +1,3 @@
+[tasks.format]
+run = "mvn spotless:apply"
+
