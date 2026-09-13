@@ -1,11 +1,13 @@
 package com.pischule.mentionbot.service;
 
+import static com.pischule.mentionbot.util.LoggingUtil.CHAT_ID_KEY;
 import static com.pischule.mentionbot.util.LoggingUtil.withResponse;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.DeleteMessages;
 import com.pischule.mentionbot.dao.SentMessageDao;
 import com.pischule.mentionbot.model.SentMessage;
+import com.pischule.mentionbot.util.CollectionUtil;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.stream.Collectors;
@@ -36,7 +38,7 @@ public class MessageCleaner {
         }
     }
 
-    private void deleteOldMessages() {
+    private void deleteOldMessages() throws InterruptedException {
         Instant deleteBefore = Instant.now().minus(Duration.ofHours(47));
 
         var messagesToDelete = sentMessageDao.findAll().stream()
@@ -49,14 +51,25 @@ public class MessageCleaner {
             var chatId = e.getKey();
             var messages = e.getValue();
 
-            var messageIds = messages.stream()
-                    .mapToInt(it -> Math.toIntExact(it.messageId()))
-                    .toArray();
-            var response = bot.execute(new DeleteMessages(chatId, messageIds));
-            if (response.isOk()) {
-                logger.atInfo().addKeyValue("chat_id", chatId).log("Deleted {} messages from chat", messages.size());
-            } else {
-                withResponse(logger.atWarn(), response).log("Failed to delete message {}", response);
+            var messageIds =
+                    messages.stream().map(it -> Math.toIntExact(it.messageId())).toList();
+
+            var messageIdChunks = CollectionUtil.chunked(messageIds, MESSAGES_PER_DELETE);
+
+            for (var chunk : messageIdChunks) {
+                var chunkArray = chunk.stream().mapToInt(it -> it).toArray();
+                var response = bot.execute(new DeleteMessages(chatId, chunkArray));
+                if (response.isOk()) {
+                    logger.atInfo()
+                            .addKeyValue(CHAT_ID_KEY, chatId)
+                            .log("Deleted {} messages from chat", messages.size());
+                } else {
+                    withResponse(logger.atWarn(), response)
+                            .addKeyValue(CHAT_ID_KEY, chatId)
+                            .log("Failed to delete message");
+                }
+
+                Thread.sleep(Duration.ofSeconds(1));
             }
 
             for (var m : messages) {
@@ -64,4 +77,6 @@ public class MessageCleaner {
             }
         }
     }
+
+    private static final int MESSAGES_PER_DELETE = 100;
 }
