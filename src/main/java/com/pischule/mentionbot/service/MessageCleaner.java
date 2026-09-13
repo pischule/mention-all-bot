@@ -69,7 +69,7 @@ public class MessageCleaner {
                             .log("Failed to delete message");
                 }
 
-                Thread.sleep(Duration.ofSeconds(1));
+                Thread.sleep(Duration.ofSeconds(2));
             }
 
             for (var m : messages) {

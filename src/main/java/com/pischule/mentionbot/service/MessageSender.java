@@ -7,6 +7,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pischule.mentionbot.dao.SentMessageDao;
+import io.github.resilience4j.ratelimiter.RateLimiter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,11 +23,17 @@ public class MessageSender {
     private final SentMessageDao sentMessageDao;
     private final ScheduledExecutorService executorService;
     private final ConcurrentHashMap<Long, Instant> chatIdToLastSend;
+    private final RateLimiter rateLimiter;
 
-    public MessageSender(TelegramBot bot, SentMessageDao sentMessageDao, ScheduledExecutorService executorService) {
+    public MessageSender(
+            TelegramBot bot,
+            SentMessageDao sentMessageDao,
+            ScheduledExecutorService executorService,
+            RateLimiter rateLimiter) {
         this.bot = bot;
         this.sentMessageDao = sentMessageDao;
         this.executorService = executorService;
+        this.rateLimiter = rateLimiter;
 
         this.chatIdToLastSend = new ConcurrentHashMap<>();
 
@@ -66,7 +73,7 @@ public class MessageSender {
     record SendMessageContext(long chatId, SendMessage request, boolean deleteLater) {}
 
     private void sendInternal(SendMessageContext ctx) {
-        var response = bot.execute(ctx.request());
+        var response = rateLimiter.executeSupplier(() -> bot.execute(ctx.request()));
         if (response.isOk()) {
             logger.atDebug().addKeyValue(CHAT_ID_KEY, ctx.chatId()).log("Sent message");
             if (ctx.deleteLater()) {

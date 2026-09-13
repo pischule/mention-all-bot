@@ -10,8 +10,12 @@ import com.pischule.mentionbot.service.MessageSender;
 import com.pischule.mentionbot.service.TelegramUpdateHandler;
 import com.pischule.mentionbot.util.JdbcTemplate;
 import com.pischule.mentionbot.util.LiquibaseRunner;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -47,10 +51,12 @@ public class Application {
         var chatStatsDao = new ChatStatsDao(jdbcTemplate);
         var senderExecutor = Executors.newScheduledThreadPool(4);
 
+        var sendMessageRateLimiter = configureSendMessageRateLimiter();
+
         sqliteDao.enableJournalModeWal();
 
         var bot = new TelegramBot(botToken);
-        var messageSender = new MessageSender(bot, sentMessageDao, senderExecutor);
+        var messageSender = new MessageSender(bot, sentMessageDao, senderExecutor, sendMessageRateLimiter);
         var updateHandler = new TelegramUpdateHandler(bot, chatUsersDao, chatStatsDao, messageSender);
         var messageCleaner = new MessageCleaner(sentMessageDao, bot);
 
@@ -83,5 +89,16 @@ public class Application {
         // start
         cleanerThread.start();
         updateHandler.startPolling();
+    }
+
+    private static RateLimiter configureSendMessageRateLimiter() {
+        var config = RateLimiterConfig.custom()
+                .limitRefreshPeriod(Duration.ofSeconds(1))
+                // actual limit is 30
+                .limitForPeriod(28)
+                .timeoutDuration(Duration.ofSeconds(40))
+                .build();
+        var registry = RateLimiterRegistry.of(config);
+        return registry.rateLimiter("sendMessage");
     }
 }
