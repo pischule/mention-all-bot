@@ -27,8 +27,8 @@ public class MessageCleaner {
     public void launchLoop() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                Thread.sleep(Duration.ofSeconds(60));
                 deleteOldMessages();
-                Thread.sleep(Duration.ofSeconds(30));
             } catch (InterruptedException e) {
                 logger.info("Message cleaner was interrupted. Shutting down", e);
                 Thread.currentThread().interrupt();
@@ -39,7 +39,7 @@ public class MessageCleaner {
     }
 
     private void deleteOldMessages() throws InterruptedException {
-        Instant deleteBefore = Instant.now().minus(Duration.ofHours(47));
+        Instant deleteBefore = Instant.now().minus(Duration.ofHours(DELETE_MESSAGES_AFTER_HOURS));
 
         var messagesToDelete = sentMessageDao.findAll().stream()
                 .filter(m -> m.createdAt().isBefore(deleteBefore))
@@ -78,5 +78,6 @@ public class MessageCleaner {
         }
     }
 
+    private static final int DELETE_MESSAGES_AFTER_HOURS = 24;
     private static final int MESSAGES_PER_DELETE = 100;
 }
