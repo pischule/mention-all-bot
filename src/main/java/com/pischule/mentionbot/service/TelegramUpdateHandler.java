@@ -1,5 +1,6 @@
 package com.pischule.mentionbot.service;
 
+import static com.pischule.mentionbot.util.CollectionUtil.chunked;
 import static com.pischule.mentionbot.util.LoggingUtil.*;
 
 import com.pengrad.telegrambot.TelegramBot;
@@ -189,20 +190,17 @@ public class TelegramUpdateHandler {
 
         touchChatStats(message);
 
-        var mentions = users.stream()
+        var allMentions = users.stream()
                 .map(chatUser -> {
                     var escapedUsername = StringEscapeUtils.escapeHtml4(chatUser.username());
                     return "<a href=\"tg://user?id=%s\">%s</a>".formatted(chatUser.userId(), escapedUsername);
                 })
                 .toList();
 
-        int chunksCount = Math.ceilDiv(mentions.size(), MENTIONS_PER_MESSAGE);
-        for (int offset = 0; offset < mentions.size(); offset += MENTIONS_PER_MESSAGE) {
-            var toIndex = Math.min(offset + MENTIONS_PER_MESSAGE, mentions.size());
-            var chunk = mentions.subList(offset, toIndex);
-
+        var mentionChunks = chunked(allMentions, MENTIONS_PER_MESSAGE);
+        for (var chunk : mentionChunks) {
             var text = String.join(" ", chunk);
-            messageSender.send(chatId, text, ParseMode.HTML, true, chunksCount);
+            messageSender.send(chatId, text, ParseMode.HTML, true, mentionChunks.size());
         }
 
         withMessage(logger.atInfo(), message).log("Processed ALL command");
