@@ -62,7 +62,7 @@ public class MessageCleaner {
                 if (response.isOk()) {
                     logger.atInfo()
                             .addKeyValue(CHAT_ID_KEY, chatId)
-                            .log("Deleted {} messages from chat", messages.size());
+                            .log("Deleted {} messages from chat", chunk.size());
                 } else {
                     withResponse(logger.atWarn(), response)
                             .addKeyValue(CHAT_ID_KEY, chatId)
