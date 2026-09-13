@@ -27,3 +27,12 @@ create table if not exists chat_stats
     last_active_at text,
     users_count    integer
 );
+
+-- changeset pischule:2
+drop index if exists idx_sent_messages_deleted_at;
+
+alter table sent_messages
+    drop column updated_at;
+
+alter table sent_messages
+    drop column deleted_at;
