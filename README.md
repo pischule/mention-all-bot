@@ -15,13 +15,24 @@ mention-all-bot is a telegram bot that helps to mention all users in a group.
 Commands:
 
 ```
-/start - Display help text
-/in - Opt-in to receive mentions
-/out - Opt-out of receiving mentions
-/all - Mention all opted-in users
+/start        - Display help text
+/in           - Opt-in to receive mentions
+/out          - Opt-out of receiving mentions
+/all          - Mention all opted-in users
+/stats        - Display users and chats stats
+/stats_recent - Display recent activity stats
 ```
 
 ## Installation
+
+The bot stores its data in a SQLite database and reads configuration from
+`config/application.properties`. Create it next to `docker-compose.yml`:
+
+`config/application.properties`:
+```properties
+jdbc-url=jdbc:sqlite:data/db.sqlite3
+bot-token=<BOT_TOKEN>
+```
 
 `docker-compose.yml`:
 ```yaml
@@ -29,23 +40,17 @@ services:
   app:
     image: ghcr.io/pischule/mention-all-bot:master
     restart: always
-    environment:
-      TGBOT_TOKEN: "token_example"
-      DB_CONNSTRING : "host=db port=5432 dbname=postgres user=postgres password=password_example"
-  db:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: "password_example"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-volumes:
-  postgres-data:
+      - ./config:/app/config:ro
+      - ./data:/app/data
 ```
 
 ```shell
 docker compose up -d
 ```
+
+The `data` directory holds the SQLite database, keep it to preserve state
+between restarts.
 
 ## License
 GNU GPLv3
