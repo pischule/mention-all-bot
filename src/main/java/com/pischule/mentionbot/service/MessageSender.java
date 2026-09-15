@@ -10,6 +10,8 @@ import com.pischule.mentionbot.dao.SentMessageDao;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -42,30 +44,36 @@ public class MessageSender {
     }
 
     public void send(long chatId, String text) {
-        send(chatId, text, null, false, 1);
+        send(chatId, List.of(text), null, false);
     }
 
-    public void send(long chatId, String text, ParseMode parseMode, boolean deleteLater, int expectedCount) {
-        var request = new SendMessage(chatId, text);
-        if (parseMode != null) {
-            request.setParseMode(parseMode);
+    public void send(long chatId, List<String> texts, ParseMode parseMode, boolean deleteLater) {
+        Duration delay;
+        if (texts.size() >= 20) {
+            delay = LARGE_CHAT_DELAY;
+        } else {
+            delay = SMALL_CHAT_DELAY;
         }
 
-        var ctx = new SendMessageContext(chatId, request, deleteLater);
-
         var now = Instant.now();
-        var scheduleTime = chatIdToLastSend.compute(chatId, (_, old) -> {
-            if (old == null) {
-                return now;
-            } else {
-                var delay = expectedCount >= 20 ? LARGE_CHAT_DELAY : SMALL_CHAT_DELAY;
-                return old.plus(delay);
-            }
-        });
 
-        var delayMillis = Duration.between(now, scheduleTime).toMillis();
+        for (String text : texts) {
+            var request = new SendMessage(chatId, text);
+            Optional.ofNullable(parseMode).ifPresent(request::setParseMode);
+            var ctx = new SendMessageContext(chatId, request, deleteLater);
 
-        executorService.schedule(() -> sendInternal(ctx), delayMillis, TimeUnit.MILLISECONDS);
+            var scheduleTime = chatIdToLastSend.compute(chatId, (_, old) -> {
+                if (old == null) {
+                    return now;
+                } else {
+                    return old.plus(delay);
+                }
+            });
+
+            var delayMillis = Duration.between(now, scheduleTime).toMillis();
+
+            executorService.schedule(() -> sendInternal(ctx), delayMillis, TimeUnit.MILLISECONDS);
+        }
 
         cleanup();
     }

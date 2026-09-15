@@ -10,7 +10,9 @@ import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pischule.mentionbot.dao.ChatStatsDao;
 import com.pischule.mentionbot.dao.ChatUserDao;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.apache.commons.text.StringEscapeUtils;
@@ -137,7 +139,7 @@ public class TelegramUpdateHandler {
                         stats.b250(),
                         stats.b50(),
                         stats.bMore());
-        messageSender.send(message.chat().id(), text, ParseMode.MarkdownV2, false, 1);
+        messageSender.send(message.chat().id(), List.of(text), ParseMode.MarkdownV2, false);
         withMessage(logger.atInfo(), message).log("Processed STATS_RECENT command");
     }
 
@@ -151,7 +153,7 @@ public class TelegramUpdateHandler {
                 Groups: %6d`
                 """.formatted(stats.users(), stats.chats(), stats.groups());
 
-        messageSender.send(chatId, text, ParseMode.MarkdownV2, false, 1);
+        messageSender.send(chatId, List.of(text), ParseMode.MarkdownV2, false);
 
         withMessage(logger.atInfo(), message).log("Processed STATS command");
     }
@@ -198,10 +200,12 @@ public class TelegramUpdateHandler {
                 .toList();
 
         var mentionChunks = chunked(allMentions, MENTIONS_PER_MESSAGE);
+        var messages = new ArrayList<String>();
         for (var chunk : mentionChunks) {
             var text = String.join(" ", chunk);
-            messageSender.send(chatId, text, ParseMode.HTML, true, mentionChunks.size());
+            messages.add(text);
         }
+        messageSender.send(chatId, messages, ParseMode.HTML, true);
 
         withMessage(logger.atInfo(), message).log("Processed ALL command");
     }
