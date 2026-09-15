@@ -22,11 +22,11 @@ public class JdbcTemplate {
 
     public int update(String sql, Object... params) {
         try (var conn = getConnection();
-                var pst = conn.prepareStatement(sql)) {
+                var ps = conn.prepareStatement(sql)) {
 
-            pst.setQueryTimeout(statementTimeoutSeconds);
-            setParameters(pst, params);
-            return pst.executeUpdate();
+            ps.setQueryTimeout(statementTimeoutSeconds);
+            setParameters(ps, params);
+            return ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Database update failed", e);
         }
@@ -34,12 +34,12 @@ public class JdbcTemplate {
 
     public <T> List<T> query(String sql, RowMapper<T> rowMapper, Object... params) {
         try (var conn = getConnection();
-                var pst = conn.prepareStatement(sql)) {
-            pst.setQueryTimeout(statementTimeoutSeconds);
-            setParameters(pst, params);
+                var ps = conn.prepareStatement(sql)) {
+            ps.setQueryTimeout(statementTimeoutSeconds);
+            setParameters(ps, params);
 
             var results = new ArrayList<T>();
-            try (var rs = pst.executeQuery()) {
+            try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
                     results.add(rowMapper.mapRow(rs));
                 }
@@ -50,10 +50,10 @@ public class JdbcTemplate {
         }
     }
 
-    private void setParameters(PreparedStatement pst, Object... params) throws SQLException {
+    private void setParameters(PreparedStatement ps, Object... params) throws SQLException {
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
-                pst.setObject(i + 1, params[i]);
+                ps.setObject(i + 1, params[i]);
             }
         }
     }
