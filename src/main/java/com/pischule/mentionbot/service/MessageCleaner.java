@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MessageCleaner {
-    private static final Logger logger = LoggerFactory.getLogger(MessageCleaner.class);
+    private final Logger logger = LoggerFactory.getLogger(MessageCleaner.class);
     private final SentMessageDao sentMessageDao;
     private final TelegramBot bot;
 

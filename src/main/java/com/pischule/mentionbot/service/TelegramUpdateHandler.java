@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TelegramUpdateHandler {
-    private static final Logger logger = LoggerFactory.getLogger(TelegramUpdateHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(TelegramUpdateHandler.class);
 
     private final TelegramBot bot;
 

@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SqliteDao {
-    private static final Logger logger = LoggerFactory.getLogger(SqliteDao.class);
+    private final Logger logger = LoggerFactory.getLogger(SqliteDao.class);
     private final JdbcTemplate jdbcTemplate;
 
     public SqliteDao(JdbcTemplate jdbcTemplate) {
