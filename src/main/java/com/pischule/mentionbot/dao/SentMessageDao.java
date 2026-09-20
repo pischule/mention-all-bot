@@ -12,10 +12,11 @@ public class SentMessageDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<SentMessage> findAll() {
+    public List<SentMessage> findAllCreatedBefore(Instant createdBefore) {
         var sql = """
                 select id, created_at, chat_id, message_id
                 from sent_messages
+                where created_at < ?
                 """;
         return jdbcTemplate.query(
                 sql,
@@ -23,7 +24,8 @@ public class SentMessageDao {
                         rs.getLong("id"),
                         Instant.ofEpochSecond(rs.getLong("created_at")),
                         rs.getLong("chat_id"),
-                        rs.getInt("message_id")));
+                        rs.getInt("message_id")),
+                createdBefore.getEpochSecond());
     }
 
     public void deleteById(long id) {

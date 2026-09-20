@@ -41,9 +41,7 @@ public class MessageCleaner {
     private void deleteOldMessages() throws InterruptedException {
         Instant deleteBefore = Instant.now().minus(Duration.ofHours(DELETE_MESSAGES_AFTER_HOURS));
 
-        var messagesToDelete = sentMessageDao.findAll().stream()
-                .filter(m -> m.createdAt().isBefore(deleteBefore))
-                .toList();
+        var messagesToDelete = sentMessageDao.findAllCreatedBefore(deleteBefore);
 
         var chatIdToMessages = messagesToDelete.stream().collect(Collectors.groupingBy(SentMessage::chatId));
 
