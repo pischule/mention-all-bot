@@ -10,10 +10,7 @@ import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pischule.mentionbot.dao.ChatStatsDao;
 import com.pischule.mentionbot.dao.ChatUserDao;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -190,7 +187,7 @@ public class TelegramUpdateHandler {
             return;
         }
 
-        touchChatStats(message);
+        chatStatsDao.updateLastActiveWithUsers(chatId, users.size());
 
         var allMentions = users.stream()
                 .map(chatUser -> {
@@ -215,7 +212,7 @@ public class TelegramUpdateHandler {
         long userId = message.from().id();
         chatUserDao.delete(chatId, userId);
 
-        touchChatStats(message);
+        chatStatsDao.updateLastActive(chatId);
 
         var username = extractUsername(message.from());
         messageSender.send(chatId, "You've been opted out %s".formatted(username));
@@ -236,11 +233,11 @@ public class TelegramUpdateHandler {
         User from = message.from();
         if (from == null) return;
 
-        touchChatStats(message);
-
         long chatId = message.chat().id();
         long userId = from.id();
         var username = extractUsername(from);
+
+        chatStatsDao.updateLastActive(chatId);
 
         chatUserDao.insert(chatId, userId, username);
         messageSender.send(chatId, "Thanks for opting in %s".formatted(username));
@@ -252,11 +249,6 @@ public class TelegramUpdateHandler {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse("anonymous");
-    }
-
-    private void touchChatStats(Message message) {
-        var chatId = message.chat().id();
-        chatStatsDao.update(chatId);
     }
 
     private static final int MENTIONS_PER_MESSAGE = 4;

@@ -11,12 +11,22 @@ public class ChatStatsDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void update(long chatId) {
+    public void updateLastActive(long chatId) {
         jdbcTemplate.update("""
                 insert into chat_stats (chat_id, last_active_at)
                 values (?, ?)
                 on conflict do update set last_active_at = excluded.last_active_at
                 """, chatId, Instant.now().getEpochSecond());
+    }
+
+    public void updateLastActiveWithUsers(long chatId, int usersCount) {
+        jdbcTemplate.update("""
+                insert into chat_stats (chat_id, last_active_at, users_count)
+                values (?, ?, ?)
+                on conflict do update
+                    set last_active_at = excluded.last_active_at,
+                        users_count    = excluded.users_count
+                """, chatId, Instant.now().getEpochSecond(), usersCount);
     }
 
     public ChatStats getRecentStats() {
