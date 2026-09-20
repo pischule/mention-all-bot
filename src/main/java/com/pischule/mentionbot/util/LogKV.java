@@ -2,6 +2,8 @@ package com.pischule.mentionbot.util;
 
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.response.BaseResponse;
+import java.util.UUID;
+import org.slf4j.MDC;
 import org.slf4j.spi.LoggingEventBuilder;
 
 public final class LogKV {
@@ -24,6 +26,25 @@ public final class LogKV {
 
         return builder.addKeyValue(ERROR_CODE, response.errorCode()).addKeyValue(ERROR_DESC, response.description());
     }
+
+    public static void withTrace(UUID traceId, Runnable action) {
+        if (traceId == null) {
+            traceId = UUID.randomUUID();
+        }
+        UUID traceIdConst = traceId;
+
+        ScopedValue.where(LogKV.TRACE_ID, traceIdConst).run(() -> {
+            try (var _ = MDC.putCloseable("trace_id", traceIdConst.toString().replaceAll("-", ""))) {
+                action.run();
+            }
+        });
+    }
+
+    public static UUID getTraceId() {
+        return TRACE_ID.orElse(UUID.randomUUID());
+    }
+
+    private static final ScopedValue<UUID> TRACE_ID = ScopedValue.newInstance();
 
     public static final String CHAT_ID = "chat_id";
     public static final String MESSAGE_ID = "message_id";

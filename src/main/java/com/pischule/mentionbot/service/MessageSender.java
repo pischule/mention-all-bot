@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,10 +56,12 @@ public class MessageSender {
 
         var now = Instant.now();
 
+        UUID traceId = LogKV.getTraceId();
+
         for (String text : texts) {
             var request = new SendMessage(chatId, text);
             Optional.ofNullable(parseMode).ifPresent(request::setParseMode);
-            var ctx = new SendMessageContext(chatId, request, deleteLater);
+            var ctx = new SendMessageContext(chatId, request, deleteLater, traceId);
 
             var scheduleTime = chatIdToLastSend.compute(chatId, (_, old) -> {
                 if (old == null) {
@@ -76,22 +79,24 @@ public class MessageSender {
         cleanup();
     }
 
-    record SendMessageContext(long chatId, SendMessage request, boolean deleteLater) {}
+    record SendMessageContext(long chatId, SendMessage request, boolean deleteLater, UUID traceId) {}
 
     private void sendInternal(SendMessageContext ctx) {
-        var response = rateLimiter.executeSupplier(() -> bot.execute(ctx.request()));
-        if (response.isOk()) {
-            Integer messageId = response.message().messageId();
-            logger.atDebug()
-                    .addKeyValue(LogKV.CHAT_ID, ctx.chatId())
-                    .addKeyValue(LogKV.MESSAGE_ID, messageId)
-                    .log("Sent message");
-            if (ctx.deleteLater()) {
-                sentMessageDao.insert(ctx.chatId(), messageId);
+        LogKV.withTrace(ctx.traceId, () -> {
+            var response = rateLimiter.executeSupplier(() -> bot.execute(ctx.request()));
+            if (response.isOk()) {
+                Integer messageId = response.message().messageId();
+                logger.atInfo()
+                        .addKeyValue(LogKV.CHAT_ID, ctx.chatId())
+                        .addKeyValue(LogKV.MESSAGE_ID, messageId)
+                        .log("Sent message");
+                if (ctx.deleteLater()) {
+                    sentMessageDao.insert(ctx.chatId(), messageId);
+                }
+            } else {
+                LogKV.withResponse(logger.atError(), response).log("Failed to send message");
             }
-        } else {
-            LogKV.withResponse(logger.atError(), response).log("Failed to send message");
-        }
+        });
     }
 
     private void cleanup() {

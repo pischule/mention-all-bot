@@ -1,7 +1,6 @@
 package com.pischule.mentionbot.service;
 
 import static com.pischule.mentionbot.util.CollectionUtil.chunked;
-import static com.pischule.mentionbot.util.LogKV.*;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
@@ -10,6 +9,7 @@ import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pischule.mentionbot.dao.ChatStatsDao;
 import com.pischule.mentionbot.dao.ChatUserDao;
+import com.pischule.mentionbot.util.LogKV;
 import java.util.*;
 import java.util.stream.Stream;
 import org.apache.commons.text.StringEscapeUtils;
@@ -38,7 +38,9 @@ public class TelegramUpdateHandler {
                 updates -> {
                     for (var update : updates) {
                         try {
-                            handle(update);
+                            LogKV.withTrace(null, () -> {
+                                handle(update);
+                            });
                         } catch (Exception e) {
                             logger.error("Exception while processing update {}", update, e);
                         }
@@ -137,7 +139,7 @@ public class TelegramUpdateHandler {
                         stats.b50(),
                         stats.bMore());
         messageSender.send(message.chat().id(), List.of(text), ParseMode.MarkdownV2, false);
-        withMessage(logger.atInfo(), message).log("Processed STATS_RECENT");
+        LogKV.withMessage(logger.atInfo(), message).log("Processed STATS_RECENT");
     }
 
     private void handleStats(Message message) {
@@ -152,7 +154,7 @@ public class TelegramUpdateHandler {
 
         messageSender.send(chatId, List.of(text), ParseMode.MarkdownV2, false);
 
-        withMessage(logger.atInfo(), message).log("Processed STATS");
+        LogKV.withMessage(logger.atInfo(), message).log("Processed STATS");
     }
 
     private void handleNewChatMembers(Message message) {
@@ -176,7 +178,9 @@ public class TelegramUpdateHandler {
 
         chatUserDao.delete(chatId, userId);
 
-        withMessage(logger.atInfo(), message).addKeyValue("user_id", userId).log("Chat member left");
+        LogKV.withMessage(logger.atInfo(), message)
+                .addKeyValue("user_id", userId)
+                .log("Chat member left");
     }
 
     private void handleAll(Message message) {
@@ -204,7 +208,7 @@ public class TelegramUpdateHandler {
         }
         messageSender.send(chatId, messages, ParseMode.HTML, true);
 
-        withMessage(logger.atInfo(), message).log("Processed ALL for {} users", users.size());
+        LogKV.withMessage(logger.atInfo(), message).log("Processed ALL for {} users", users.size());
     }
 
     private void handleOut(Message message) {
@@ -217,7 +221,7 @@ public class TelegramUpdateHandler {
         var username = extractUsername(message.from());
         messageSender.send(chatId, "You've been opted out %s".formatted(username));
 
-        withMessage(logger.atInfo(), message).log("Processed OUT command");
+        LogKV.withMessage(logger.atInfo(), message).log("Processed OUT command");
     }
 
     private void handleStart(Message message) {
@@ -226,7 +230,7 @@ public class TelegramUpdateHandler {
                 + "Everyone who wishes to receive mentions needs to /in to opt-in. "
                 + "All opted-in users can then be mentioned using /all";
         messageSender.send(chatId, text);
-        withMessage(logger.atInfo(), message).log("Processed START");
+        LogKV.withMessage(logger.atInfo(), message).log("Processed START");
     }
 
     private void handleIn(Message message) {
@@ -241,7 +245,7 @@ public class TelegramUpdateHandler {
 
         chatUserDao.insert(chatId, userId, username);
         messageSender.send(chatId, "Thanks for opting in %s".formatted(username));
-        withMessage(logger.atInfo(), message).log("Processed IN");
+        LogKV.withMessage(logger.atInfo(), message).log("Processed IN");
     }
 
     private String extractUsername(User user) {
