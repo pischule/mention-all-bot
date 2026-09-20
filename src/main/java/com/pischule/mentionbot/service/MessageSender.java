@@ -1,12 +1,10 @@
 package com.pischule.mentionbot.service;
 
-import static com.pischule.mentionbot.util.LoggingUtil.CHAT_ID_KEY;
-import static com.pischule.mentionbot.util.LoggingUtil.withResponse;
-
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pischule.mentionbot.dao.SentMessageDao;
+import com.pischule.mentionbot.util.LogKV;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import java.time.Duration;
 import java.time.Instant;
@@ -83,12 +81,16 @@ public class MessageSender {
     private void sendInternal(SendMessageContext ctx) {
         var response = rateLimiter.executeSupplier(() -> bot.execute(ctx.request()));
         if (response.isOk()) {
-            logger.atDebug().addKeyValue(CHAT_ID_KEY, ctx.chatId()).log("Sent message");
+            Integer messageId = response.message().messageId();
+            logger.atDebug()
+                    .addKeyValue(LogKV.CHAT_ID, ctx.chatId())
+                    .addKeyValue(LogKV.MESSAGE_ID, messageId)
+                    .log("Sent message");
             if (ctx.deleteLater()) {
-                sentMessageDao.insert(ctx.chatId(), response.message().messageId());
+                sentMessageDao.insert(ctx.chatId(), messageId);
             }
         } else {
-            withResponse(logger.atError(), response).log("Failed to send message");
+            LogKV.withResponse(logger.atError(), response).log("Failed to send message");
         }
     }
 

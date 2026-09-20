@@ -1,13 +1,13 @@
 package com.pischule.mentionbot.service;
 
-import static com.pischule.mentionbot.util.LoggingUtil.CHAT_ID_KEY;
-import static com.pischule.mentionbot.util.LoggingUtil.withResponse;
+import static com.pischule.mentionbot.util.LogKV.withResponse;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.DeleteMessages;
 import com.pischule.mentionbot.dao.SentMessageDao;
 import com.pischule.mentionbot.model.SentMessage;
 import com.pischule.mentionbot.util.CollectionUtil;
+import com.pischule.mentionbot.util.LogKV;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.stream.Collectors;
@@ -59,10 +59,12 @@ public class MessageCleaner {
                 var chunkArray = chunk.stream().mapToInt(it -> it).toArray();
                 var response = bot.execute(new DeleteMessages(chatId, chunkArray));
                 if (response.isOk()) {
-                    logger.atInfo().addKeyValue(CHAT_ID_KEY, chatId).log("Deleted {} messages from chat", chunk.size());
+                    logger.atInfo()
+                            .addKeyValue(LogKV.CHAT_ID, chatId)
+                            .log("Deleted {} messages from chat", chunk.size());
                 } else {
                     withResponse(logger.atWarn(), response)
-                            .addKeyValue(CHAT_ID_KEY, chatId)
+                            .addKeyValue(LogKV.CHAT_ID, chatId)
                             .log("Failed to delete message");
                 }
 
