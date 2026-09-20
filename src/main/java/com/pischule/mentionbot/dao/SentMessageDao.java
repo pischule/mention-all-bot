@@ -3,7 +3,6 @@ package com.pischule.mentionbot.dao;
 import com.pischule.mentionbot.model.SentMessage;
 import com.pischule.mentionbot.util.JdbcTemplate;
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 public class SentMessageDao {
@@ -22,9 +21,7 @@ public class SentMessageDao {
                 sql,
                 rs -> new SentMessage(
                         rs.getLong("id"),
-                        // for backward compatibility with Go datetime format
-                        OffsetDateTime.parse(rs.getString("created_at").replace(" ", "T"))
-                                .toInstant(),
+                        Instant.ofEpochSecond(rs.getLong("created_at")),
                         rs.getLong("chat_id"),
                         rs.getInt("message_id")));
     }
@@ -43,6 +40,6 @@ public class SentMessageDao {
                 insert into sent_messages
                 (chat_id, message_id, created_at)
                 values (?, ?, ?)
-                """, chatId, messageId, Instant.now().toString());
+                """, chatId, messageId, Instant.now().getEpochSecond());
     }
 }

@@ -2,8 +2,7 @@ package com.pischule.mentionbot.dao;
 
 import com.pischule.mentionbot.model.ChatStats;
 import com.pischule.mentionbot.util.JdbcTemplate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 
 public class ChatStatsDao {
     private final JdbcTemplate jdbcTemplate;
@@ -17,7 +16,7 @@ public class ChatStatsDao {
                 insert into chat_stats (chat_id, last_active_at)
                 values (?, ?)
                 on conflict do update set last_active_at = excluded.last_active_at
-                """, chatId, OffsetDateTime.now(ZoneOffset.UTC));
+                """, chatId, Instant.now().getEpochSecond());
     }
 
     public ChatStats getRecentStats() {

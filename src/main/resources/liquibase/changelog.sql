@@ -36,3 +36,13 @@ alter table sent_messages
 
 alter table sent_messages
     drop column deleted_at;
+
+-- changeset pischule:3
+update
+    sent_messages
+set created_at = cast(strftime('%s', created_at) as int);
+
+-- changeset pischule:4
+update
+    chat_stats
+set last_active_at = cast(strftime('%s', last_active_at) as int);
