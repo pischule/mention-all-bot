@@ -20,18 +20,20 @@ public class JdbcTemplate {
         return DriverManager.getConnection(jdbcUrl);
     }
 
-    public int update(String sql, Object... params) {
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    public void update(String sql, Object... params) {
         try (var conn = getConnection();
                 var ps = conn.prepareStatement(sql)) {
 
             ps.setQueryTimeout(statementTimeoutSeconds);
             setParameters(ps, params);
-            return ps.executeUpdate();
+            ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Database update failed", e);
         }
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     public <T> List<T> query(String sql, RowMapper<T> rowMapper, Object... params) {
         try (var conn = getConnection();
                 var ps = conn.prepareStatement(sql)) {
@@ -51,10 +53,8 @@ public class JdbcTemplate {
     }
 
     private void setParameters(PreparedStatement ps, Object... params) throws SQLException {
-        if (params != null) {
-            for (int i = 0; i < params.length; i++) {
-                ps.setObject(i + 1, params[i]);
-            }
+        for (int i = 0; i < params.length; i++) {
+            ps.setObject(i + 1, params[i]);
         }
     }
 }

@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public class MessageSender {
         send(chatId, List.of(text), null, false);
     }
 
-    public void send(long chatId, List<String> texts, ParseMode parseMode, boolean deleteLater) {
+    public void send(long chatId, List<String> texts, @Nullable ParseMode parseMode, boolean deleteLater) {
         UUID traceId = LogKV.getTraceId();
 
         var messageContexts = texts.stream()
@@ -171,6 +172,7 @@ public class MessageSender {
         }
     }
 
+    @Nullable
     private Integer extractRateLimitedDelayMs(SendResponse response) {
         if (response.errorCode() != 429) {
             return null;

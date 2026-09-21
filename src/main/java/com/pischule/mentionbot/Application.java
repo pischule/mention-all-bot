@@ -18,10 +18,12 @@ import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+@NullMarked
 public class Application {
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
 

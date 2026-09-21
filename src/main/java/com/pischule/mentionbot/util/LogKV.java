@@ -3,6 +3,7 @@ package com.pischule.mentionbot.util;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.response.BaseResponse;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.MDC;
 import org.slf4j.spi.LoggingEventBuilder;
 
@@ -27,7 +28,7 @@ public final class LogKV {
         return builder.addKeyValue(ERROR_CODE, response.errorCode()).addKeyValue(ERROR_DESC, response.description());
     }
 
-    public static void withTrace(UUID traceId, Runnable action) {
+    public static void withTrace(@Nullable UUID traceId, Runnable action) {
         if (traceId == null) {
             traceId = UUID.randomUUID();
         }

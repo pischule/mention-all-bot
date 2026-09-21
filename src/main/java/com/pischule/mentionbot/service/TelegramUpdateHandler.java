@@ -38,9 +38,7 @@ public class TelegramUpdateHandler {
                 updates -> {
                     for (var update : updates) {
                         try {
-                            LogKV.withTrace(null, () -> {
-                                handle(update);
-                            });
+                            LogKV.withTrace(null, () -> handle(update));
                         } catch (Exception e) {
                             logger.error("Exception while processing update {}", update, e);
                         }

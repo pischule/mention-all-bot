@@ -59,6 +59,12 @@
             <artifactId>java-telegram-bot-api</artifactId>
             <version>10.1.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
