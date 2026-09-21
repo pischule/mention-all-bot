@@ -72,7 +72,7 @@ public class Application {
             logger.atInfo().log("Stopping sender executor");
             senderExecutor.shutdown();
             try {
-                if (!senderExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+                if (!senderExecutor.awaitTermination(90, TimeUnit.SECONDS)) {
                     senderExecutor.shutdownNow();
                     logger.warn("Force shutdown sender executor");
                 } else {
