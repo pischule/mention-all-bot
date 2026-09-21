@@ -4,7 +4,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pischule.mentionbot.dao.ChatStatsDao;
 import com.pischule.mentionbot.dao.ChatUserDao;
 import com.pischule.mentionbot.dao.SentMessageDao;
-import com.pischule.mentionbot.dao.SqliteDao;
 import com.pischule.mentionbot.service.MessageCleaner;
 import com.pischule.mentionbot.service.MessageSender;
 import com.pischule.mentionbot.service.TelegramUpdateHandler;
@@ -45,15 +44,12 @@ public class Application {
 
         var jdbcTemplate = new JdbcTemplate(jdbcUrl, 30);
 
-        var sqliteDao = new SqliteDao(jdbcTemplate);
         var chatUsersDao = new ChatUserDao(jdbcTemplate);
         var sentMessageDao = new SentMessageDao(jdbcTemplate);
         var chatStatsDao = new ChatStatsDao(jdbcTemplate);
         var senderExecutor = Executors.newScheduledThreadPool(4);
 
         var sendMessageRateLimiter = configureSendMessageRateLimiter();
-
-        sqliteDao.enableJournalModeWal();
 
         var bot = new TelegramBot(botToken);
         var messageSender = new MessageSender(bot, sentMessageDao, senderExecutor, sendMessageRateLimiter);

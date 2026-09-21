@@ -46,3 +46,6 @@ set created_at = cast(strftime('%s', created_at) as int);
 update
     chat_stats
 set last_active_at = cast(strftime('%s', last_active_at) as int);
+
+-- changeset pischule:9999-enable-wal-mode runInTransaction:false runAlways:true
+pragma journal_mode=wal;
