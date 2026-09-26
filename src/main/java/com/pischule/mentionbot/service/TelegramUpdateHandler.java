@@ -172,7 +172,7 @@ public class TelegramUpdateHandler {
         for (var user : message.newChatMembers()) {
             long userId = user.id();
 
-            logger.atInfo()
+            logger.atDebug()
                     .addKeyValue("chat_id", chatId)
                     .addKeyValue("user_id", user.id())
                     .log("User joined chat");
