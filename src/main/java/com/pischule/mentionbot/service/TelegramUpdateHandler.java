@@ -57,18 +57,17 @@ public class TelegramUpdateHandler {
             return;
         }
 
-        if (response.errorCode() >= 500) {
+        int errorCode = response.errorCode();
+        if (errorCode >= 500 || errorCode == 429) {
             try {
-                Thread.sleep(TG_5XX_SLEEP);
+                Thread.sleep(UPDATES_ERROR_SLEEP);
             } catch (InterruptedException ex) {
                 logger.error("Updates error handler sleep interrupted", ex);
             }
         }
 
-        logger.atError()
-                .addKeyValue("errorCode", response.errorCode())
-                .addKeyValue("description", response.description())
-                .log("Error error from telegram", e);
+        LogKV.withResponse(logger.atError(), response)
+                .log("Error while getting updates", e);
     }
 
     public void handle(Update update) {
@@ -266,5 +265,5 @@ public class TelegramUpdateHandler {
     }
 
     private static final int MENTIONS_PER_MESSAGE = 4;
-    private static final Duration TG_5XX_SLEEP = Duration.ofSeconds(5);
+    private static final Duration UPDATES_ERROR_SLEEP = Duration.ofSeconds(5);
 }
