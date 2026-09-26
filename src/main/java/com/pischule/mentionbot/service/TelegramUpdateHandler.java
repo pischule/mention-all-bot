@@ -3,13 +3,14 @@ package com.pischule.mentionbot.service;
 import static com.pischule.mentionbot.util.CollectionUtil.chunked;
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.TelegramException;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.response.BaseResponse;
 import com.pischule.mentionbot.dao.ChatStatsDao;
 import com.pischule.mentionbot.dao.ChatUserDao;
 import com.pischule.mentionbot.util.LogKV;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 import org.apache.commons.text.StringEscapeUtils;
@@ -45,18 +46,29 @@ public class TelegramUpdateHandler {
                     }
                     return UpdatesListener.CONFIRMED_UPDATES_ALL;
                 },
-                e -> {
-                    if (e.response() == null) {
-                        logger.atError().log("Error while handling update", e);
-                    } else {
-                        BaseResponse response = e.response();
-                        logger.atError()
-                                .addKeyValue("errorCode", response.errorCode())
-                                .addKeyValue("description", response.description())
-                                .log("Error error from telegram", e);
-                    }
-                });
+                this::handleGetUpdatesError);
         logger.atInfo().log("Subscribed to telegram updates");
+    }
+
+    private void handleGetUpdatesError(TelegramException e) {
+        var response = e.response();
+        if (response == null) {
+            logger.atError().log("Error while handling update", e);
+            return;
+        }
+
+        if (response.errorCode() >= 500) {
+            try {
+                Thread.sleep(TG_5XX_SLEEP);
+            } catch (InterruptedException ex) {
+                logger.error("Updates error handler sleep interrupted", ex);
+            }
+        }
+
+        logger.atError()
+                .addKeyValue("errorCode", response.errorCode())
+                .addKeyValue("description", response.description())
+                .log("Error error from telegram", e);
     }
 
     public void handle(Update update) {
@@ -254,4 +266,5 @@ public class TelegramUpdateHandler {
     }
 
     private static final int MENTIONS_PER_MESSAGE = 4;
+    private static final Duration TG_5XX_SLEEP = Duration.ofSeconds(5);
 }

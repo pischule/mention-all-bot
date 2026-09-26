@@ -48,4 +48,4 @@ update
 set last_active_at = cast(strftime('%s', last_active_at) as int);
 
 -- changeset pischule:9999-enable-wal-mode runInTransaction:false runAlways:true
-pragma journal_mode=wal;
+pragma journal_mode= wal;
